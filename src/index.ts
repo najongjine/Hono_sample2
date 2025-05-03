@@ -13,6 +13,10 @@ app.get("/", (c) => {
 
 app.route("/test1", test1);
 
+app.onError((err, c) => {
+  return c.json({ success: false, data: null, code: "global_err", message: `${err?.message ?? "!!!_global_err"}` });
+});
+
 const hono_port = Number(process?.env?.HONO_PORT ?? 3005);
 serve(
   {
