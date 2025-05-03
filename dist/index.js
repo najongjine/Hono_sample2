@@ -1,20 +1,14 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
-
 const app = new Hono();
-
 app.get("/", (c) => {
-  return c.json("Hello Hono!");
+    return c.json("Hello Hono!");
 });
-
 const hono_port = Number(process?.env?.HONO_PORT ?? 3005);
-serve(
-  {
+serve({
     fetch: app.fetch,
     port: hono_port,
-  },
-  (info) => {
+}, (info) => {
     console.log(`Server is running on http://localhost:${info.port}`);
     console.log(`process.env.NODE_ENV :${process.env.NODE_ENV}`);
-  }
-);
+});
