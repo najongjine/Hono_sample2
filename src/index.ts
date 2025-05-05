@@ -1,11 +1,26 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import * as dotenv from "dotenv";
+import { AppDataSource } from "./data-source1";
+
+const envFile = process.env.NODE_ENV === "production" ? ".env.production" : ".env.development";
+dotenv.config({ path: envFile });
 
 /** import routes */
 import test1 from "./routes/test1/test1.js";
 /** import routes END */
 
 const app = new Hono();
+
+/** DB 연결 */
+AppDataSource.initialize()
+  .then(() => {
+    console.log("Data Source has been initialized!");
+  })
+  .catch((err) => {
+    console.error("Error during Data Source initialization:", err);
+  });
+/** DB 연결 END */
 
 app.get("/", (c) => {
   return c.json("Hello Hono!");
