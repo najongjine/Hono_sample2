@@ -1,5 +1,9 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import * as dotenv from "dotenv";
+
+const envFile = process.env.NODE_ENV === "production" ? ".env.production" : ".env.development";
+dotenv.config({ path: envFile });
 
 /** import routes */
 import test1 from "./routes/test1/test1.js";
