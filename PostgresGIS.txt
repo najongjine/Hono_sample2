@@ -1,0 +1,34 @@
+# PostGIS 확장 설치
+# 먼저 PostgreSQL 데이터베이스에 PostGIS 확장을 설치해야 합니다. SQL 콘솔에서 다음 명령어를 실행하세요:
+CREATE EXTENSION postgis;
+
+# 가게 위치를 저장할 테이블 생성
+# 가게의 위치 정보를 저장하기 위해 geography(Point, 4326) 타입을 사용하는 테이블을 생성합니다. 이 타입은 지구의 곡률을 고려하여 거리 계산을 정확하게 수행할 수 있습니다.
+CREATE TABLE t_stores (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  location GEOGRAPHY(Point, 4326) NOT NULL
+);
+
+# 공간 인덱스 생성
+# 공간 인덱스를 생성하면 위치 기반 검색의 성능을 향상시킬 수 있습니다. location 컬럼에 대해 GiST 인덱스를 생성합니다:
+CREATE INDEX idx_stores_location ON t_stores USING GIST (location);
+
+# 가게 위치 데이터 삽입
+# 가게의 위도와 경도 정보를 삽입할 때는 ST_MakePoint 함수를 사용하여 Point 객체를 생성하고, 이를 geography 타입으로 변환합니다. 주의할 점은 ST_MakePoint 함수의 인자가 (경도, 위도) 순서라는 것입니다.
+INSERT INTO t_stores (name, location)
+VALUES
+  ('카페 모카', ST_MakePoint(126.832, 35.166)::geography),
+  ('베이커리 블루', ST_MakePoint(126.834, 35.168)::geography),
+  ('피자 헛', ST_MakePoint(126.836, 35.170)::geography);
+
+# 현재 위치 기준으로 주변 가게 검색
+# 사용자의 현재 위치를 기준으로 반경 1km 이내에 있는 가게를 검색하려면 ST_DWithin 함수를 사용합니다. 이 함수는 두 지점 간의 거리가 특정 거리 이내인지 확인합니다.
+SELECT
+  id,
+  name,
+  ST_Distance(location, ST_MakePoint(126.833, 35.167)::geography) AS distance_m
+FROM t_stores
+WHERE ST_DWithin(location, ST_MakePoint(126.833, 35.167)::geography, 200)
+ORDER BY distance_m
+LIMIT 10;
