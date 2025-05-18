@@ -11,16 +11,6 @@ import test1 from "./routes/test1/test1.js";
 
 const app = new Hono();
 
-/** DB 연결 */
-AppDataSource.initialize()
-  .then(() => {
-    console.log("Data Source has been initialized!");
-  })
-  .catch((err) => {
-    console.error("Error during Data Source initialization:", err);
-  });
-/** DB 연결 END */
-
 app.get("/", (c) => {
   return c.json("Hello Hono!");
 });
