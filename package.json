@@ -14,6 +14,7 @@
     "cross-env": "^7.0.3",
     "dotenv": "^16.5.0",
     "hono": "^4.7.8",
+    "imgbb-uploader": "^1.5.1",
     "moment-timezone": "^0.6.0",
     "pg": "^8.15.6",
     "puppeteer": "^24.9.0",
