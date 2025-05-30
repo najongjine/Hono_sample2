@@ -11,9 +11,11 @@
   "dependencies": {
     "@hono/node-server": "^1.14.1",
     "axios": "^1.9.0",
+    "bcrypt": "^6.0.0",
     "cross-env": "^7.0.3",
     "dotenv": "^16.5.0",
-    "hono": "^4.7.8",
+    "hono": "^4.7.10",
+    "jsonwebtoken": "^9.0.2",
     "moment-timezone": "^0.6.0",
     "pg": "^8.15.6",
     "puppeteer": "^24.9.0",
@@ -23,7 +25,9 @@
     "typeorm": "^0.3.22"
   },
   "devDependencies": {
-    "@types/node": "^20.17.32",
+    "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^20.17.54",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "tsx": "^4.7.1",
