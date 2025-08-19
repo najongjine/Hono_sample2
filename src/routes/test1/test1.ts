@@ -20,61 +20,41 @@ router.post("/test1-post", async (c) => {
   }
 });
 
-/**
- * Phi-3-mini-4k-instruct 모델은 최대 4,000 토큰의 컨텍스트 길이를 지원합니다. 즉, 시스템 메시지, 사용자 질문, 그리고 모델이 생성할 응답을 모두 포함하여 총 토큰 수가 4,000을 초과하지 않아야 합니다.
-
-✅ 입력 토큰 제한
-입력 토큰 수: 시스템 프롬프트와 사용자 질문을 포함하여 최대 4,000 토큰까지 허용됩니다.
-
-출력 토큰 수 (max_new_tokens): 입력 토큰 수와 출력 토큰 수의 합이 4,000을 초과하지 않도록 설정해야 합니다.
-
-예를 들어, 입력 프롬프트가 3,000 토큰이라면, max_new_tokens를 1,000 이하로 설정해야 전체 토큰 수가 4,000을 넘지 않습니다.
-
-⚠️ 주의사항
-입력 프롬프트가 너무 길어 4,000 토큰을 초과하면, 모델은 초과된 부분을 잘라내거나 오류를 발생시킬 수 있습니다.
-
-Hugging Face의 Inference API를 사용할 경우, 추가적인 제한이 있을 수 있으므로 공식 문서를 참고하시기 바랍니다.
-
-✅ 토큰 수 계산 방법
-토큰 수를 정확하게 계산하려면, Hugging Face의 transformers 라이브러리를 사용하여 다음과 같이 확인할 수 있습니다:
- */
-router.get("/chat", async (c) => {
-  const allParams = c?.req?.query();
-  let message = allParams?.message ?? "한국 IT 회사에 취업하고 싶어. 어떻게 해야해?";
-  console.log("HUGGINGFACE_API_KEY: ", process.env.HUGGINGFACE_API_KEY);
-
-  try {
-    const prompt = `<|system|>\n
-    You are a helpful korean chatbot assistant.
-    <|end|>\n
-    <|user|>\n
-    ${message}
-    <|end|>\n
-    <|assistant|>`;
-
-    const response = await axios.post(
-      "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct",
-      {
-        inputs: prompt,
-        parameters: {
-          max_new_tokens: 1000,
-          temperature: 0.5,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const generatedText = response.data[0]?.generated_text || "응답을 생성하지 못했습니다.";
-    return c.json({ reply: generatedText });
-  } catch (error: any) {
-    console.error("API 요청 중 오류 발생:", error.message);
-    return c.json({ error: "API 요청 중 오류가 발생했습니다." }, 500);
+// 텍스트 임베딩 생성 예시
+router.post('/embed', async c => {
+  const body = await c?.req?.json();
+  const texts=String(body?.texts??"테스트 문장 입니다");
+  console.log(texts)
+  if (!texts) {
+    return c.json({ error: 'texts must be a non-empty string array' }, 400)
   }
-});
+
+  const apiKey = process.env.NOMIC_API_KEY
+  if (!apiKey) return c.json({ error: 'NOMIC_API_KEY missing' }, 500)
+
+  // Nomic Embed Text 엔드포인트
+  const res = await fetch('https://api-atlas.nomic.ai/v1/embedding/text', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      // 핵심: Bearer 헤더에 API Key
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      // 최신 문서 기준: model / input 형식 (문서의 예제와 유사)
+      // texts 배열을 그대로 보내는 버전도 존재합니다. (문서/SDK에 따라 payload 이름이 다를 수 있어 이 구조가 보편적입니다)
+      texts: [texts],
+      model: 'nomic-embed-text-v1.5' // 혹은 v1 등
+    })
+  })
+
+  if (!res.ok) {
+    const errText = await res.text()
+    return c.json({ error: 'nomic api failed', status: res.status, details: errText }, 500)
+  }
+
+  const data = await res.json()
+  return c.json(data)
+})
 
 export default router;
